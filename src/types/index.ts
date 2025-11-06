@@ -1,10 +1,19 @@
 export interface Product {
-  id: number;
-  name: string;
-  category: 'POCHOCLOS' | 'BEBIDA';
-  type: 'Dulces' | 'Salados' | 'Miti Miti' | 'Caja de juguitos' | 'Vasos de gaseosas';
-  price: number;
+    id: string;
+    name: string;
+    category: string;
+    price: number;
+    inStock: boolean;
+    imagen?: string; // ✅ puede ser opcional
 }
+//Esto para crear new producto
+export type NewProductData = {
+  name: string;
+  category: string;
+  price: number;
+  imagen: string; // antes era File | null
+};
+
 
 export interface CartItem extends Product {
   quantity: number;

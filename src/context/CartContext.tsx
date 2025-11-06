@@ -1,12 +1,11 @@
-import React, { createContext, useReducer, useContext, ReactNode } from 'react';
-
-import { Product, CartItem, CartState } from '../types'; 
+import React, { createContext, useReducer, useContext } from 'react';
+import type { ReactNode } from 'react';
+import type { Product, CartItem, CartState } from '../types';
 
 type CartAction =
-  | { type: 'ADD_ITEM'; payload: Product }      // Añadir o incrementar un producto
-  | { type: 'REMOVE_ITEM'; payload: number }
+  | { type: 'ADD_ITEM'; payload: Product }
+  | { type: 'REMOVE_ITEM'; payload: string }
   | { type: 'CLEAR_CART' };
-
 
 const initialState: CartState = {
   items: [],
@@ -14,33 +13,34 @@ const initialState: CartState = {
 };
 
 const cartReducer = (state: CartState, action: CartAction): CartState => {
-  let updatedItems: CartItem[] = state.items; 
+  let updatedItems: CartItem[] = state.items;
 
   switch (action.type) {
-    
     case 'ADD_ITEM': {
       const product = action.payload;
-      const existingItem = state.items.find(item => item.id === product.id);
+      const productId = product.id.toString();
+      const existingItem = state.items.find(item => item.id === productId);
       
       if (existingItem) {
-        // Lógica de INCREMENTO: Si ya existe, incrementa la cantidad.
         updatedItems = state.items.map(item =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === productId ? { ...item, quantity: item.quantity + 1 } : item
         );
       } else {
-        // Agrega como nuevo item con cantidad 1.
-        updatedItems = [...state.items, { ...product, quantity: 1 }];
+        updatedItems = [...state.items, { 
+          ...product, 
+          id: productId,
+          quantity: 1 
+        }];
       }
       break;
     }
 
-    {/* AGREGAR CASO DE INCREMENTAR 1 UNIDAD */}
-    
     case 'REMOVE_ITEM': {
       const productId = action.payload;
       const existingItem = state.items.find(item => item.id === productId);
 
       if (!existingItem) {
+        return state; 
       } 
       else if (existingItem.quantity > 1) {
         updatedItems = state.items.map(item =>
@@ -54,7 +54,7 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     }
 
     case 'CLEAR_CART': {
-      return initialState; 
+      return initialState;
     }
 
     default:
@@ -67,8 +67,8 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
 
 interface CartContextType extends CartState {
   addItem: (product: Product) => void;
-  removeItem: (productId: number) => void;
-  clearCart: () => void; // Función para vaciar carrito
+  removeItem: (productId: string) => void;
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -80,7 +80,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     dispatch({ type: 'ADD_ITEM', payload: product });
   };
   
-  const removeItem = (productId: number) => {
+  const removeItem = (productId: string) => {
     dispatch({ type: 'REMOVE_ITEM', payload: productId });
   };
   

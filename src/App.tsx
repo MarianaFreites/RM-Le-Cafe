@@ -1,39 +1,109 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import ProductCard from './components/ProductCard';
 import CartDisplay from './components/CartDisplay';
-import { Product } from './types';
+import { useProducts } from './hooks/useProducts';
 import './index.css';
 
-// DATOS DE LOS PRODUCTOS
-const mockProducts: Product[] = [
-  { id: 1, name: 'Combo Dulce', category: 'POCHOCLOS', type: 'Dulces', price: 1500 },
-  { id: 2, name: 'Combo Salado', category: 'POCHOCLOS', type: 'Salados', price: 1500 },
-  { id: 3, name: 'Combo Miti Miti', category: 'POCHOCLOS', type: 'Miti Miti', price: 1800 },
-  { id: 4, name: 'Jugo de Durazno', category: 'BEBIDA', type: 'Caja de juguitos', price: 650 },
-  { id: 5, name: 'Jugo de Manzana', category: 'BEBIDA', type: 'Caja de juguitos', price: 650 },
-  { id: 6, name: 'Jugo Multifruta', category: 'BEBIDA', type: 'Caja de juguitos', price: 650 },
-  { id: 7, name: 'Vaso de Coca-Cola', category: 'BEBIDA', type: 'Vasos de gaseosas', price: 500 },
-  { id: 8, name: 'Vaso de Pritty', category: 'BEBIDA', type: 'Vasos de gaseosas', price: 500 },
-];
 
 const App: React.FC = () => {
+  const { products, loading, error } = useProducts();
+  const [canInstall, setCanInstall] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setCanInstall(true);
+      console.log('✅ PWA puede instalarse!');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // También verificar si ya está instalada
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('✅ Ya está instalada como PWA');
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  const installPWA = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setCanInstall(false);
+        console.log('Usuario aceptó instalar la PWA');
+      }
+    }
+  };
+
   return (
     <div>
-      <header style={{ backgroundColor: '#cc0000', color: 'white', padding: '0.1px', textAlign: 'center' }}>
-        <h1><u>AM POPCORN</u> 🍿🥤</h1>
+      <header style={{ 
+        backgroundImage: "url('/Opcion_de_portada2.png')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        color: 'white', 
+        padding: '1rem', 
+        textAlign: 'center',
+        position: 'relative'
+      }}>
+        {/* Overlay negro semi-transparente */}
+        <div style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0, 
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', // 0.5 = 50% oscuro
+          zIndex: 0 
+        }}></div>
+
+        <img src="/LOGO_RM_Transparente.png" alt="Logo RM Le'Cafe"
+         style={{ width: '60px', height: '60px', objectFit: 'contain', position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)',  zIndex: 2 }}
+        />
+        <h1 style={{ margin: '0 0 10px 0', fontFamily:"Playfair Display, serif", fontWeight: 700, fontStyle: 'italic', fontSize: '2.5rem', color: '#ffffff', position: 'relative', zIndex: 2 }}>RM Le'Cafe</h1>
       </header>
       
       <CartDisplay />
       
-      <main className="product-grid">
-        {mockProducts.map(product => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+      <main className="product-grid" style={{ paddingBottom: '80px' }}>
+        {loading && <p>Productos...</p>}
+        {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+        
+        {products
+          .filter(product => product.inStock)
+          .map(product => (
+            <ProductCard key={product.id} product={product} />
+          ))
+        }
+
       </main>
 
-      <footer style={{ backgroundColor: '#cc0000', color: 'white', padding: '0.5px', textAlign: 'center', position: 'fixed', bottom: 0, width: '100%' }}>
-        <b><p>&copy; 2025 AM Popcorn Derechos Reservados por el Instituto Remedios de Escalada de San Martín</p></b>
-      </footer>
+       {!loading && (
+  <footer 
+    style={{ 
+      backgroundColor: '#88745aff', 
+      color: 'white',
+      padding: '1rem 0', 
+      textAlign: 'center', 
+      width: '100%',
+      boxSizing: 'border-box',
+    }}
+  >
+    <b>
+      <p style={{ margin: 0, lineHeight: '1.5' }}>
+        &copy; 2025 - Proyecto escolar - Freites & Regaldo
+      </p>
+    </b>
+  </footer>
+)}
+
     </div>
   );
 };

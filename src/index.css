@@ -1,8 +1,8 @@
 :root {
-  --color-primary: #cc0000;
-  --color-background: #f8efed;
-  --color-button-normal: #f3c332;
-  --color-button-hover: #d4a413;
+  --color-primary: #afa198;
+  --color-background: #ffffff;
+  --color-button-normal: #77583a;
+  --color-button-hover: #000000;
 }
 
 body {
@@ -13,7 +13,7 @@ body {
 /* Estilo responsivo básico para las cards de productos */
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Mínimo 250px de ancho */
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Mínimo 400px de ancho */
   gap: 20px;
   padding: 20px;
 }
